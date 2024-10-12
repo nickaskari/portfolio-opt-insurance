@@ -1,2 +1,2 @@
-# portfolio-opt-insurance
+# Models for Portfolio Optimization in Insurance
 Prosjektoppgave TIØ4550
