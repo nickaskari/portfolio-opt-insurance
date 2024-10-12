@@ -1,2 +1,3 @@
 # Models for Portfolio Optimization in Insurance
-Prosjektoppgave TIØ4550
+
+Some cool readMe about the models we are about to create...
