@@ -15,3 +15,12 @@ For Windows..
 ```sh
 .\packages\Scripts\activate
 ```
+## Handling packages
+Add to requirements file after pip installing,
+```sh
+pip freeze > requirements.txt
+```
+Installing all libraries from requirements.txt,
+```sh
+pip install -r requirements.txt
+```
