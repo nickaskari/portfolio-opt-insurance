@@ -7,7 +7,11 @@ Some cool readMe about the models we are about to create...
 ```sh
 python3.10 -m venv packages 
 ```
-Then activating..
+Then activating (MAC OS)..
 ```sh
 source packages/bin/activate
+```
+For Windows..
+```sh
+.\packages\Scripts\activate
 ```
