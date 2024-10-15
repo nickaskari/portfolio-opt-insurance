@@ -10,16 +10,17 @@ def calculate_risk(allocations, returns, alpha, risk_measure="CVaR"):
     """
 
     if risk_measure == "CVaR":
-        VaR = cp.Variable()  
-        CVaR = cp.Variable()  
+        VaR = cp.Variable()  # Value at Risk
         losses = -returns @ allocations
         VaR_constraint = losses >= VaR
+
         CVaR_expression = VaR + (1 / (1 - alpha)) * cp.sum(cp.pos(losses - VaR)) / len(returns)
+        print("Losses:", losses.value)
         return CVaR_expression, [VaR_constraint]
 
     elif risk_measure == "VaR":
         losses = -returns @ allocations
-        k = int((1 - alpha) * len(returns))  # Ensure k is an integer
+        k = max(1, int((1 - alpha) * len(returns)))  # Ensure k is at least 1
         VaR = cp.sum_largest(losses, k) / k  # Approximate VaR using k-largest losses
         return VaR, []
 
