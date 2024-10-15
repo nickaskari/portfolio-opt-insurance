@@ -1,2 +1,9 @@
 /packages
 .packages
+
+# macOS files
+.DS_Store
+
+# Ignore all pycache folders from all subfolders
+**/__pycache__/
+**/*.py[cod]
