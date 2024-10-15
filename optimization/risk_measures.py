@@ -19,8 +19,8 @@ def calculate_risk(allocations, returns, alpha, risk_measure="CVaR"):
 
     elif risk_measure == "VaR":
         losses = -returns @ allocations
-        sorted_losses = cp.sum(cp.pos(cp.sort(losses)))
-        VaR = sorted_losses[int(len(losses) * (1 - alpha))]  # The alpha quantile of losses
+        k = int((1 - alpha) * len(returns))  # Ensure k is an integer
+        VaR = cp.sum_largest(losses, k) / k  # Approximate VaR using k-largest losses
         return VaR, []
 
     elif risk_measure == "variance":
