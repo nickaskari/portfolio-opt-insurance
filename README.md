@@ -2,6 +2,9 @@
 
 Some cool readMe about the models we are about to create...
 
+Just for reference:
+Insane GA library: https://esa.github.io/pygmo/index.html
+
 ## Setting up Virtual Environment
 
 ```sh
