@@ -1,8 +1,8 @@
 import cvxpy as cp
 import numpy as np
 import pandas as pd
-from risk_measures import calculate_risk
-from parameters import assets, future_returns, alpha, SCR_threshold, n 
+from optimization.old_shit.risk_measures import calculate_risk
+from optimization.old_shit.parameters import assets, future_returns, alpha, SCR_threshold, n 
 
 # Optimization variables (allocations to each asset)
 allocations = cp.Variable(n)
