@@ -215,7 +215,8 @@ class SLSQP:
             method='SLSQP', 
             bounds=bounds, 
             constraints=self.create_constraints(),
-            callback=self.callback
+            callback=self.callback,
+            options={'disp': True, 'maxiter': 100}
         )
 
         self.optimal_weights = result.x
@@ -227,7 +228,7 @@ class SLSQP:
         else:
             print("\nResult was a success!")
 
-        print("\nOptimal Portfolio Weights:", self.optimal_weights)
+        print("\nOptimal Portfolio Weights:", self.optimal_weights.round(4), "sum", sum(self.optimal_weights))
         print("Optimal RORAC:", -self.roRAC_objective(self.optimal_weights))
         print("Expected Portfolio Return:", np.dot(self.optimal_weights, self.expected_returns))
         print("Portfolio SCR (CVaR of BOF):", self.calculate_scr(self.optimal_weights))
