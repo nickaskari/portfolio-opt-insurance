@@ -24,7 +24,7 @@ class SLSQP:
     """
     
     def __init__(self, risk_measure, liabilities_0, assets_0, eonia_rate, alpha, SCR_max, distribution_method='historical',
-                 n_assets=None):
+                 maxiter=100, n_assets=None):
         """
         Initializes the SLSQP optimizer with the given parameters.
         
@@ -50,9 +50,10 @@ class SLSQP:
         self.alpha = alpha
         self.SCR_max = SCR_max
         self.distribution_method = distribution_method 
-        self.pbar = tqdm(desc="Optimization Progress", dynamic_ncols=True)
+        self.pbar = tqdm(desc="Optimization Progress", total=maxiter)
         self.optimal_weights = None
-    
+        self.maxiter = maxiter
+        
     def fetch_data_df(self, n_assets):
         """
         Fetches and returns the data from an asset prices CSV file.
@@ -119,29 +120,23 @@ class SLSQP:
         if self.distribution_method == 'historical':
             portfolio_values = distributor.historical_portfolio_returns()
         elif self.distribution_method == 'montecarlo':
-            portfolio_values = distributor.simulate_monte_carlo(num_simulations=1000, time_horizon=1)
+            portfolio_values = distributor.simulate_monte_carlo(num_simulations=100, time_horizon=1)
         elif self.distribution_method == 'garch':
             portfolio_values = distributor.simulate_garch(time_horizon=1)
         else:
             raise ValueError(f"Unknown distribution method: {self.distribution_method}")
 
-        bof_values = portfolio_values - liabilities_t
-
-        var = np.percentile(bof_values, 100 * (1 - self.alpha))
-        cvar = np.mean(bof_values[bof_values <= var])
+        bof_value_0 = self.assets_0 - self.liabilities_0
+        bof_values_t = portfolio_values - liabilities_t
         
-        return cvar  
+        #self.plot_bof_distribution(portfolio_values)
+
+        var = np.percentile(bof_values_t, 100 * (1 - self.alpha))
+        cvar = np.mean(bof_values_t[bof_values_t <= var])
+        
+        return cvar
 
     def roRAC_objective(self, weights):
-        """
-        Defines the objective function to maximize the Return on Risk-Adjusted Capital (RoRAC).
-        
-        Parameters:
-        - weights: NumPy array of portfolio weights.
-        
-        Returns:
-        - Negative RoRAC, as the optimizer minimizes the objective.
-        """
 
         portfolio_return = np.dot(weights, self.expected_returns)
         portfolio_cvar = self.calculate_scr(weights)
@@ -150,64 +145,32 @@ class SLSQP:
         return -roRAC  # Return negative RoRAC so the optimizer maximizes it
     
     def budget_constraint(self, weights):
-        """
-        Constraint function ensuring that the sum of portfolio weights equals 1 (fully invested).
-        
-        Parameters:
-        - weights: NumPy array of portfolio weights.
-        
-        Returns:
-        - Difference between sum of weights and 1.0.
-        """
         return np.sum(weights) - 1.0
     
     def scr_constraint(self, weights):
-        """
-        Constraint function ensuring that the portfolio's CVaR is less than or equal to the maximum SCR.
-        
-        Parameters:
-        - weights: NumPy array of portfolio weights.
-        
-        Returns:
-        - Difference between SCR_max and portfolio CVaR.
-        """
-
         portfolio_cvar = self.calculate_scr(weights)
         # Ensure CVaR <= SCR_max
         return self.SCR_max - portfolio_cvar
 
+    def max_weight_constraint(self, weights):         
+        return 5 - np.max(weights)
+
     def create_constraints(self):
-        """
-        Creates a set of constraints for the optimization process.
-        
-        Returns:
-        - A tuple of constraint dictionaries for weight sum and SCR constraint.
-        """
         return (
             {'type': 'eq', 'fun': self.budget_constraint},  # Portfolio weights must sum to 1
             {'type': 'ineq', 'fun': self.scr_constraint}  # CVaR must be less than SCR_max
+            #{'type': 'ineq', 'fun': self.max_weight_constraint}  # Max weight <= 0.5
         )
     
     def callback(self, xk):
-        """
-            Callback function called after each iteration of the SLSQP optimization.
-            This function updates the progress bar.
-        """
         self.pbar.update(1)
     
     def optimize(self):
-        """
-        Runs the optimization process using the SLSQP algorithm to maximize RoRAC, 
-        subject to the budget and SCR constraints.
-        """
         # Bounds for weights: no short-selling (weights >= 0)
         bounds = [(0, 1) for _ in range(self.n_assets)]
 
         # Initial guess: equally weighted portfolio
-        #initial_weights = np.ones(self.n_assets) / self.n_assets
-
-        initial_weights = np.random.uniform(0, 1, self.n_assets)  # Generate random numbers
-        initial_weights /= np.sum(initial_weights)
+        initial_weights = np.ones(self.n_assets) / self.n_assets
 
         result = minimize(
             self.roRAC_objective, 
@@ -216,7 +179,7 @@ class SLSQP:
             bounds=bounds, 
             constraints=self.create_constraints(),
             callback=self.callback,
-            options={'disp': True, 'maxiter': 100}
+            options={'disp': True, 'maxiter': self.maxiter}
         )
 
         self.optimal_weights = result.x
@@ -229,9 +192,9 @@ class SLSQP:
             print("\nResult was a success!")
 
         print("\nOptimal Portfolio Weights:", self.optimal_weights.round(4), "sum", sum(self.optimal_weights))
-        print("Optimal RORAC:", -self.roRAC_objective(self.optimal_weights))
-        print("Expected Portfolio Return:", np.dot(self.optimal_weights, self.expected_returns))
-        print("Portfolio SCR (CVaR of BOF):", self.calculate_scr(self.optimal_weights))
+        print("Optimal RORAC:", round(-self.roRAC_objective(self.optimal_weights) * 100, 5))
+        print("Expected Portfolio Return:", round(np.dot(self.optimal_weights, self.expected_returns) * 100, 4), "%")
+        print("Portfolio SCR (CVaR of BOF):", round(self.calculate_scr(self.optimal_weights), 2))
     
     def store_result(self):
         """
@@ -291,16 +254,37 @@ class SLSQP:
         ax.set_zlabel('RoRAC')
         plt.title('RoRAC Objective Landscape for Two Assets')
         plt.show()
+    
+    def plot_bof_distribution(self, bof_values):
+        """
+        Plots the distribution of BOF values and highlights the VaR (Value at Risk) at a given confidence level.
+        
+        Parameters:
+        - bof_values: The array of Basic Own Funds (BOF) values calculated in the optimization process.
+        """
+        var = np.percentile(bof_values, 100 * (1 - self.alpha))
+        
+        plt.figure(figsize=(10, 6))
+        plt.hist(bof_values, bins=50, density=True, alpha=0.6, color='g', label='BOF Distribution')
+        
+        plt.axvline(var, color='r', linestyle='dashed', linewidth=2, label=f'VaR (alpha={self.alpha})')
+        
+        plt.xlabel('BOF Values')
+        plt.ylabel('Density')
+        plt.title(f'Distribution of BOF and VaR at {self.alpha * 100}% Confidence Level')
+        plt.legend()
+        plt.show()
 
 
 
 optimizer = SLSQP(risk_measure='CVaR',
-                  liabilities_0=800,
+                  liabilities_0=900,
                   assets_0=1000,
                   eonia_rate=0.01,
-                  alpha=0.95,
-                  SCR_max=450,
-                  distribution_method='montecarlo',
+                  alpha=0.995,
+                  SCR_max=300, # Has to be defined with regards to the inital assets - liabilities
+                  distribution_method='historical',
+                  maxiter=100,
                   n_assets=None)
 
 

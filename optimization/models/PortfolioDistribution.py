@@ -17,7 +17,9 @@ class PortfolioDistribution:
         self.mean_returns = returns_df.mean()  # Mean of historical returns
         self.cov_matrix = returns_df.cov()     # Covariance matrix of returns
         self.initial_portfolio_value = initial_portfolio_value
-        self.rescale_factor = rescale_factor  
+        self.rescale_factor = rescale_factor
+
+        self.mc_returns = None
     
     def historical_portfolio_returns(self):
         """
@@ -41,10 +43,12 @@ class PortfolioDistribution:
         - Simulated portfolio values (NumPy array).
         """
         # Simulate future returns using a multivariate normal distribution
-        random_returns = np.random.multivariate_normal(self.mean_returns, self.cov_matrix, num_simulations)
+
+        if not self.mc_returns:
+            self.mc_returns = np.random.multivariate_normal(self.mean_returns, self.cov_matrix, num_simulations)
         
         # Calculate portfolio returns for each simulation
-        portfolio_returns = np.dot(random_returns, self.weights)
+        portfolio_returns = np.dot(self.mc_returns, self.weights)
         
         portfolio_values = self.initial_portfolio_value * np.exp(portfolio_returns * time_horizon)
         
