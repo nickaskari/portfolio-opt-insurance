@@ -28,20 +28,8 @@ class DiffEvolution:
         self.mean_yearly_returns = yearly_returns.mean()
 
     def calculate_expected_return(self, weights):
-        '''
-        mean_simulated_returns = np.mean(self.simulated_cumulative_returns, axis=0)
-        expected_return_percentage = np.dot(weights, mean_simulated_returns)
-
-        # Convert the percentage return to a monetary value
-        expected_return_monetary = self.assets0 * expected_return_percentage
-        '''
-        # Get the mean yearly returns for each asset
         mean_yearly_returns = self.mean_yearly_returns
-
-        # Calculate the weighted average yearly return for the portfolio
         expected_return_percentage = np.dot(weights, mean_yearly_returns)
-
-        # Convert to monetary value
         expected_return_monetary = self.assets0 * expected_return_percentage
 
         return expected_return_monetary
