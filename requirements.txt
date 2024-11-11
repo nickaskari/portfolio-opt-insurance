@@ -2,7 +2,7 @@ about-time==4.2.1
 ace_tools==0.0
 alive-progress==3.1.5
 appnope==0.1.4
-arch==7.1.0
+arch==5.6.0
 asttokens==2.4.1
 attrs==24.2.0
 autograd==1.7.0
@@ -42,7 +42,7 @@ numpy==1.26.4
 openpyxl==3.1.5
 osqp==0.6.7.post3
 packaging==24.1
-pandas==2.2.3
+pandas==1.5.3
 parso==0.8.4
 patsy==0.5.6
 pexpect==4.9.0
@@ -50,13 +50,16 @@ pillow==11.0.0
 platformdirs==4.3.6
 plotly==5.24.1
 prompt_toolkit==3.0.48
+property-cached==1.6.4
 psutil==6.0.0
 ptyprocess==0.7.0
 pure_eval==0.2.3
 Pygments==2.18.0
-#pymoo @ file:///Users/nickaskari/Desktop/Prosjektoppgave/portfolio-opt-insurance/packages/lib/python3.10/site-packages/pymoo
+#pygosolnp==2021.5.1
+pymoo @ file:///Users/nickaskari/Desktop/Prosjektoppgave/portfolio-opt-insurance/packages/lib/python3.10/site-packages/pymoo
 pyparsing==3.2.0
 pyportfolioopt==1.5.5
+pysolnp==2022.3.13
 python-dateutil==2.9.0.post0
 pytz==2024.2
 pyzmq==26.2.0
@@ -70,7 +73,7 @@ seaborn==0.13.2
 six==1.16.0
 skfolio==0.4.2
 stack-data==0.6.3
-statsmodels==0.14.4
+statsmodels==0.13.5
 tenacity==9.0.0
 threadpoolctl==3.5.0
 tornado==6.4.1
@@ -78,5 +81,6 @@ tqdm==4.66.5
 traitlets==5.14.3
 typing_extensions==4.12.2
 tzdata==2024.2
+vartests==0.2.2
 wcwidth==0.2.13
 wrapt==1.16.0
