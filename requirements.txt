@@ -54,7 +54,7 @@ psutil==6.0.0
 ptyprocess==0.7.0
 pure_eval==0.2.3
 Pygments==2.18.0
-pymoo @ file:///Users/nickaskari/Desktop/Prosjektoppgave/portfolio-opt-insurance/packages/lib/python3.10/site-packages/pymoo
+#pymoo @ file:///Users/nickaskari/Desktop/Prosjektoppgave/portfolio-opt-insurance/packages/lib/python3.10/site-packages/pymoo
 pyparsing==3.2.0
 pyportfolioopt==1.5.5
 python-dateutil==2.9.0.post0
