@@ -31,7 +31,7 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
             self.mean_returns, self.cov_matrix, (self.n_simulations, self.n_days))
         self.simulated_cumulative_returns = np.cumprod(1 + self.simulated_daily_returns, axis=1)[:, -1] - 1
 
-        yearly_returns = self.returns_df.resample('YE').apply(lambda x: np.prod(1 + x) - 1)
+        yearly_returns = self.returns_df.resample('Y').apply(lambda x: np.prod(1 + x) - 1)
         self.mean_yearly_returns = yearly_returns.mean()
 
         # Set up the multi-objective problem
