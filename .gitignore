@@ -8,8 +8,8 @@
 **/__pycache__/
 **/*.py[cod]
 
-#/requirements.txt
-#.requirements.txt
+/requirements.txt
+.requirements.txt
 
 /pymoo
 .pymoo

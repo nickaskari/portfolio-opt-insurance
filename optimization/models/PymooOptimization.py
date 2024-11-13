@@ -10,10 +10,14 @@ from pymoo.operators.crossover.sbx import SBX
 from pymoo.operators.mutation.pm import PolynomialMutation
 from pymoo.termination import get_termination
 from pymoo.visualization.scatter import Scatter
+from dotenv.main import load_dotenv
+import os
+load_dotenv(override=True)
+
 
 class PortfolioOptimizationProblem(ElementwiseProblem):
 
-    def __init__(self, assets0, liabilities0, returns_df, alpha, liability_growth=0.03, distribution="normal"):
+    def __init__(self, assets0, liabilities0, returns_df, alpha, simulated_daily_returns, simulated_cumulative_returns, liability_growth=0.03):
         ''' 
             distribution: 'normal' (deafult) or 'tstudent'
         '''
@@ -28,14 +32,12 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
         self.cov_matrix = returns_df.cov()
 
         # Simulation setup
-        self.n_simulations = 100000
-        self.n_days = 252
+        self.n_simulations = os.getenv("N_SIMULATIONS")
+        self.n_days = os.getenv("N_DAYS")
 
-        if distribution == 'normal':
-            self.simulated_daily_returns, self.simulated_cumulative_returns = self.normal_distribution()
-        elif distribution == 't-student':
-            #FIX
-            self.simulated_daily_returns, self.simulated_cumulative_returns = self.normal_distribution()
+        self.simulated_daily_returns, self.n_simulatated_cumulative_returns = simulated_daily_returns, simulated_cumulative_returns
+
+        self.risk_measure = os.getenv("RISK_MEASURE")
 
         yearly_returns = self.returns_df.resample('Y').apply(lambda x: np.prod(1 + x) - 1)
         self.mean_yearly_returns = yearly_returns.mean()
@@ -72,19 +74,17 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
 
         bof_t1 = assets_t1 - liabilities_t1
         bof_change = bof_t1 - BOF_0
-        scr = np.percentile(bof_change, 100 * (1 - self.alpha))
+        var = np.percentile(bof_change, 100 * (1 - self.alpha))
+
+        if self.risk_measure == 'var':  
+            scr = var
+        elif self.risk_measure == 'cvar':
+            cvar = np.mean(bof_change[bof_change <= var])
+            scr = cvar
+        else:
+            raise SystemExit("Invalid risk measure:", self.risk_measure)
+
         return scr
-    
-    
-    ## MAKE FUNCTION THAT SIMMUALTES NORMALSIMULATION
-    def normal_distribution(self):
-        simulated_daily_returns = np.random.multivariate_normal(
-            self.mean_returns, self.cov_matrix, (self.n_simulations, self.n_days))
-        simulated_cumulative_returns = np.cumprod(1 + self.simulated_daily_returns, axis=1)[:, -1] - 1
 
-        return simulated_daily_returns, simulated_cumulative_returns
-
-
-    ## MAKE FUNCTION THAT SIMMULATES T-STUDENT
 
 
