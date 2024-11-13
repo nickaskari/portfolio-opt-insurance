@@ -13,7 +13,10 @@ from pymoo.visualization.scatter import Scatter
 
 class PortfolioOptimizationProblem(ElementwiseProblem):
 
-    def __init__(self, assets0, liabilities0, returns_df, alpha, liability_growth=0.03):
+    def __init__(self, assets0, liabilities0, returns_df, alpha, liability_growth=0.03, distribution="normal"):
+        ''' 
+            distribution: 'normal' (deafult) or 'tstudent'
+        '''
         self.assets0 = assets0
         self.liabilities0 = liabilities0
         self.returns_df = returns_df
@@ -25,11 +28,14 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
         self.cov_matrix = returns_df.cov()
 
         # Simulation setup
-        self.n_simulations = 10000
+        self.n_simulations = 100000
         self.n_days = 252
-        self.simulated_daily_returns = np.random.multivariate_normal(
-            self.mean_returns, self.cov_matrix, (self.n_simulations, self.n_days))
-        self.simulated_cumulative_returns = np.cumprod(1 + self.simulated_daily_returns, axis=1)[:, -1] - 1
+
+        if distribution == 'normal':
+            self.simulated_daily_returns, self.simulated_cumulative_returns = self.normal_distribution()
+        elif distribution == 't-student':
+            #FIX
+            self.simulated_daily_returns, self.simulated_cumulative_returns = self.normal_distribution()
 
         yearly_returns = self.returns_df.resample('Y').apply(lambda x: np.prod(1 + x) - 1)
         self.mean_yearly_returns = yearly_returns.mean()
@@ -68,5 +74,17 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
         bof_change = bof_t1 - BOF_0
         scr = np.percentile(bof_change, 100 * (1 - self.alpha))
         return scr
+    
+    
+    ## MAKE FUNCTION THAT SIMMUALTES NORMALSIMULATION
+    def normal_distribution(self):
+        simulated_daily_returns = np.random.multivariate_normal(
+            self.mean_returns, self.cov_matrix, (self.n_simulations, self.n_days))
+        simulated_cumulative_returns = np.cumprod(1 + self.simulated_daily_returns, axis=1)[:, -1] - 1
+
+        return simulated_daily_returns, simulated_cumulative_returns
+
+
+    ## MAKE FUNCTION THAT SIMMULATES T-STUDENT
 
 
