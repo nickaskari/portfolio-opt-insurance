@@ -7,3 +7,9 @@
 # Ignore all pycache folders from all subfolders
 **/__pycache__/
 **/*.py[cod]
+
+#/requirements.txt
+#.requirements.txt
+
+/pymoo
+.pymoo
