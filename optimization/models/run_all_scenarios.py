@@ -23,7 +23,7 @@ def run_notebook(notebook_path):
     with open(notebook_path, 'r', encoding='utf-8') as f:
         nb = nbformat.read(f, as_version=4)
 
-    execute_preprocessor = ExecutePreprocessor(timeout=600, kernel_name='python3')
+    execute_preprocessor = ExecutePreprocessor(timeout=3000, kernel_name='python3')
     try:
         execute_preprocessor.preprocess(nb, {'metadata': {'path': '.'}})
         
