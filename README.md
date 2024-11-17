@@ -118,5 +118,3 @@ This will completely close the `screen` session.
 | `screen -X -S mysession quit`       | Forcefully kill a screen session.              |
 
 ---
-
-Feel free to copy and paste this into your `README.md`. This should serve as a handy guide for future reference! 🚀
