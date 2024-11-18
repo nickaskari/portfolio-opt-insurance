@@ -17,7 +17,7 @@ load_dotenv(override=True)
 
 class PortfolioOptimizationProblem(ElementwiseProblem):
 
-    def __init__(self, assets0, liabilities0, returns_df, alpha, simulated_daily_returns, simulated_cumulative_returns, liability_growth=0.03):
+    def __init__(self, assets0, liabilities0, returns_df, alpha, simulated_daily_returns, simulated_cumulative_returns, liability_growth=0.03, **kwargs):
         self.assets0 = assets0
         self.liabilities0 = liabilities0
         self.returns_df = returns_df
