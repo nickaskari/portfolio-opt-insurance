@@ -17,7 +17,7 @@ load_dotenv(override=True)
 
 class PortfolioOptimizationProblem(ElementwiseProblem):
 
-    def __init__(self, assets0, liabilities0, returns_df, alpha, simulated_daily_returns, simulated_cumulative_returns, liability_growth, **kwargs):
+    def __init__(self, assets0, liabilities0, returns_df, alpha, simulated_daily_returns, simulated_cumulative_returns, simulated_cumulative_lg, **kwargs):
         self.assets0 = assets0
         self.liabilities0 = liabilities0
         self.returns_df = returns_df
@@ -28,7 +28,7 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
 
         self.n_simulations = int(os.getenv("N_SIMULATIONS"))
         self.n_days = int(os.getenv("N_DAYS"))
-        self.liability_growth = float(os.getenv("LIABILITY_GROWTH"))
+        self.simulated_cumulative_lg = simulated_cumulative_lg
 
         self.simulated_daily_returns, self.n_simulatated_cumulative_returns = simulated_daily_returns, simulated_cumulative_returns
 
@@ -80,7 +80,7 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
         simulated_cumulative_returns = np.cumprod(1 + portfolio_returns, axis=1)[:, -1] - 1
 
         assets_t1 = self.assets0 * (1 + simulated_cumulative_returns)
-        liabilities_t1 = self.liabilities0 * (1 + self.liability_growth)
+        liabilities_t1 = self.liabilities0 * (1 + self.simulated_cumulative_lg)
 
         bof_t1 = assets_t1 - liabilities_t1
         bof_change = bof_t1 - BOF_0
