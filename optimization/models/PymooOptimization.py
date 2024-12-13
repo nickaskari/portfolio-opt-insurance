@@ -17,7 +17,9 @@ load_dotenv(override=True)
 
 class PortfolioOptimizationProblem(ElementwiseProblem):
 
-    def __init__(self, assets0, liabilities0, returns_df, alpha, simulated_daily_returns, simulated_cumulative_returns, simulated_cumulative_lg, **kwargs):
+    def __init__(self, assets0, liabilities0, returns_df, alpha, simulated_daily_returns, simulated_cumulative_returns,
+                  simulated_cumulative_lg, convexity_plot=False, **kwargs):
+        
         self.assets0 = assets0
         self.liabilities0 = liabilities0
         self.returns_df = returns_df
@@ -25,10 +27,13 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
         self.mean_returns = returns_df.mean()
         self.cov_matrix = returns_df.cov()
         self.concentration_bounds = self.load_concentration_bounds()
+        self.convexity_plot = convexity_plot
 
         self.n_simulations = int(os.getenv("N_SIMULATIONS"))
         self.n_days = int(os.getenv("N_DAYS"))
-        self.simulated_cumulative_lg = simulated_cumulative_lg
+
+        if not convexity_plot:
+            self.simulated_cumulative_lg = simulated_cumulative_lg
 
         self.simulated_daily_returns, self.n_simulatated_cumulative_returns = simulated_daily_returns, simulated_cumulative_returns
 
@@ -74,13 +79,16 @@ class PortfolioOptimizationProblem(ElementwiseProblem):
         return expected_return_monetary
 
     def calculate_scr(self, weights):
+        weights = np.asarray(weights)  
         BOF_0 = self.assets0 - self.liabilities0
-
         portfolio_returns = np.dot(self.simulated_daily_returns, weights)
         simulated_cumulative_returns = np.cumprod(1 + portfolio_returns, axis=1)[:, -1] - 1
-
         assets_t1 = self.assets0 * (1 + simulated_cumulative_returns)
-        liabilities_t1 = self.liabilities0 * (1 + self.simulated_cumulative_lg)
+
+        if not self.convexity_plot:
+            liabilities_t1 = self.liabilities0 * (1 + self.simulated_cumulative_lg)
+        else:
+            liabilities_t1 = self.liabilities0
 
         bof_t1 = assets_t1 - liabilities_t1
         bof_change = bof_t1 - BOF_0
