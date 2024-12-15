@@ -41,8 +41,12 @@ class DistributionCalculator:
         return simulated_daily_returns, simulated_cumulative_returns
     
     
-    def prefered_dist(self):
-        preferance = os.getenv("DISTRIBUTION")
+    def prefered_dist(self, custom=None):
+
+        if not custom:
+            preferance = os.getenv("DISTRIBUTION")
+        else:
+            preferance = custom
 
         if preferance == 'tstudent':
             return self.t_student()
@@ -50,8 +54,12 @@ class DistributionCalculator:
             return self.normal()
         
     # Returns only cumulative
-    def prefered_liability_growth(self):
-        preferance = os.getenv('DISTRIBUTION')
+    def prefered_liability_growth(self, custom = None):
+
+        if not custom:
+            preferance = os.getenv('DISTRIBUTION')
+        else:
+            preferance = custom
 
         if preferance == 'tstudent':
             t_params = t.fit(self.returns_df['EONIA'].dropna())
